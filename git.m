@@ -52,6 +52,10 @@ function git(varargin)
 % Contributors: (MR) Manu Raghavan
 %               (TH) Timothy Hansell
 
+% BUG: Redirection to TYPE command on Windows fails because TYPE does not
+% accept input from stdin. On Windows, git launches the default webbrowser
+% to view man pages anyway.
+% 31 May 2012 -- NA: Eliminated redirection on Windows
 
 % Test to see if git is installed
 [status,~] = system('git status');
@@ -67,11 +71,10 @@ function git(varargin)
         % Otherwise we can call the real git with the arguments
         arguments = parse(varargin{:});  
         if ispc
-          prog = 'type'
+          [~,result] = system(['git ',arguments]);
         else
-          prog = 'cat'
+          [~,result] = system(['git ',arguments,' | cat']);
         end
-        [~,result] = system(['git ',arguments,' | ',prog]);
         disp(result)
     end
 end
