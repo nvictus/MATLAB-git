@@ -53,33 +53,27 @@ function git(varargin)
 %               (TH) Timothy Hansell
 
 % BUG: Redirection to TYPE command on Windows fails because TYPE does not
-% accept input from stdin. On Windows, git launches the default webbrowser
-% to view man pages anyway.
-% 31 May 2012 -- NA: Eliminated redirection on Windows
+% accept input from stdin. Regarding v0.3, Windows git seems to launch the 
+% default webbrowser to view man pages so the hang bug may not apply.
+% 31 May 2012 -- NA: Eliminated redirection on PCs
 
-% Test to see if git is installed
-[status,~] = system('git status');
+arguments = cell2mat(...
+                cellfun(@(s)([s,' ']),varargin, 'UniformOutput',false));
+if ispc
+  [status, result] = system(['git ',arguments]);
+else
+  [status, result] = system(['git ',arguments,' | cat']);
+end
 % if git is in the path this will return a status of 0 or 128
 % depending on whether we are sitting in a repository or not
 % it will return a 1 only if the command is not found
 
-    if (status==1)
-        % If GIT Is NOT installed, then this should end the function.
-        fprintf('git is not installed\n%s\n',...
-               'Download it at http://git-scm.com/download');
-    else
-        % Otherwise we can call the real git with the arguments
-        arguments = parse(varargin{:});  
-        if ispc
-          [~,result] = system(['git ',arguments]);
-        else
-          [~,result] = system(['git ',arguments,' | cat']);
-        end
-        disp(result)
-    end
+if (status==1)
+    % If GIT Is NOT installed, then this should end the function.
+    fprintf('git is not installed\n%s\n',...
+           'Download it at http://git-scm.com/download');
+else
+    disp(result)
 end
 
-function space_delimited_list = parse(varargin)
-    space_delimited_list = cell2mat(...
-                cellfun(@(s)([s,' ']),varargin,'UniformOutput',false));
 end
